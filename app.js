@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, Text, StyleSheet, Platform, ListView, Keyboard, AsyncStorage } from 'react-native';
+import { View, Text, StyleSheet, Platform, ListView, Keyboard, AsyncStorage, ActivityIndicator } from 'react-native';
 import Header from './header';
 import Footer from './footer';
 import Row from './row';
@@ -19,6 +19,7 @@ class App extends Component {
 
     const ds = new ListView.DataSource({rowHasChanged: (r1, r2) => r1 !== r2});
     this.state = {
+      loading: true,
       filter: 'ALL',
       allComplete: false,
       value: '',
@@ -39,9 +40,11 @@ class App extends Component {
     AsyncStorage.getItem('items').then(itemsStr => {
       try{
         const items = JSON.parse(itemsStr);
-        this.setSource(items, items);
+        this.setSource(items, items, {loading: false});
       }catch(e) {
-
+        this.setState({
+          loading: false
+        });
       }
     });
   }
@@ -147,6 +150,15 @@ class App extends Component {
           filter={this.state.filter}
           onFilter={this.handleFilter}
           clearComplete={this.clearComplete} />
+
+        {
+          this.state.loading
+          &&
+          <ActivityIndicator
+            style={styles.loading}
+            size='large'
+          />
+        }
       </View>
     )
   };
@@ -170,6 +182,16 @@ const styles = StyleSheet.create({
   separator: {
     borderWidth: 1,
     borderColor: 'green'
+  },
+  loading: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'lightgray'
   }
 });
 
