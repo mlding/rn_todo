@@ -28,6 +28,8 @@ class App extends Component {
     };
 
     this.setSource = this.setSource.bind(this);
+    this.handleUpdateText = this.handleUpdateText.bind(this);
+    this.handleToggleEditing = this.handleToggleEditing.bind(this);
     this.clearComplete = this.clearComplete.bind(this);
     this.handleFilter = this.handleFilter.bind(this);
     this.handleDelete = this.handleDelete.bind(this);
@@ -40,6 +42,7 @@ class App extends Component {
     AsyncStorage.getItem('items').then(itemsStr => {
       try{
         const items = JSON.parse(itemsStr);
+        const newItems = items.map(item => {item.editing = false});
         this.setSource(items, items, {loading: false});
       }catch(e) {
         this.setState({
@@ -59,9 +62,32 @@ class App extends Component {
     AsyncStorage.setItem('items', JSON.stringify(items));
   }
 
+  handleUpdateText(key, text) {
+    const newItems = this.state.items.map(item => {
+      if(item.key !== key) return item;
+      return {
+        ...item,
+        text
+      }
+    });
+    this.setSource(newItems, filterItems(newItems, this.state.filter));
+  }
+
+  handleToggleEditing(key, editing) {
+    const newItems = this.state.items.map(item => {
+      if(item.key !== key) return item;
+      return {
+        ...item,
+        editing
+      }
+    });
+
+    this.setSource(newItems, filterItems(newItems, this.state.filter));
+  }
+
   clearComplete() {
     const { items } = this.state;
-    this.setSource(filterItems(items, 'ACTIVE'), filterItems(items, ACTIVE), {filter: 'ALL'});
+    this.setSource(filterItems(items, 'ACTIVE'), filterItems(items, 'ACTIVE'), {filter: 'ALL'});
   }
 
   handleFilter(filter) {
@@ -109,7 +135,8 @@ class App extends Component {
       {
         key: Date.now(),
         text: this.state.value,
-        complete: false
+        complete: false,
+        editing: false
       }
     ];
 
@@ -131,11 +158,14 @@ class App extends Component {
           enableEmptySections
           dataSource={this.state.dataSource}
           onScroll={() => Keyboard.dismiss()}
-          renderRow={({key, text, complete}) => {
+          renderRow={({key, text, complete, editing}) => {
             return (
               <Row
                 text={text}
                 complete={complete}
+                editing={editing}
+                onUpdate={(text) => {this.handleUpdateText(key, text)}}
+                onEditing={(editing) => {this.handleToggleEditing(key, editing)}}
                 onComplete={(complete) => {this.handleToggleComplete(key, complete)}}
                 onDelete = {() => {this.handleDelete(key)}}
               />

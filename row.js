@@ -1,9 +1,35 @@
 import React, { Component } from 'react';
-import { View, Text, StyleSheet, Switch, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Switch, TouchableOpacity } from 'react-native';
 
 class Row extends Component {
   render() {
-    const { complete, text, onComplete, onDelete } = this.props;
+    const { complete, text, editing, onUpdate, onEditing, onComplete, onDelete } = this.props;
+    const textComponent = (
+      <TouchableOpacity style={styles.textWrapper} onLongPress={() => {onEditing(true)}}>
+        <Text style={[styles.text, complete && styles.complete]}>{text}</Text>
+      </TouchableOpacity>
+    );
+    const deleteButton = (
+      <TouchableOpacity onPress={onDelete}>
+        <Text style={styles.delete}>X</Text>
+      </TouchableOpacity>
+    );
+    const doneButton = (
+      <TouchableOpacity onPress={() => {onEditing(false)}}>
+        <Text style={styles.done}>Save</Text>
+      </TouchableOpacity>
+    );
+    const editingComponent = (
+      <View style={styles.textWrapper}>
+        <TextInput
+          style={styles.text}
+          onChangeText={onUpdate}
+          value={text}
+          multiline
+          autoFocus
+        />
+      </View>
+    );
 
     return (
       <View style={styles.container}>
@@ -11,12 +37,9 @@ class Row extends Component {
           value={complete}
           onValueChange={onComplete}
         />
-        <View style={styles.textWrapper}>
-          <Text style={[styles.text, complete && styles.complete]}>{text}</Text>
-        </View>
-        <TouchableOpacity onPress={onDelete}>
-          <Text style={styles.delete}>X</Text>
-        </TouchableOpacity>
+
+        {editing ? editingComponent : textComponent}
+        {editing ? doneButton : deleteButton}
       </View>
     )
   };
@@ -43,6 +66,12 @@ const styles = StyleSheet.create({
   delete: {
     fontSize: 20,
     color: 'red'
+  },
+  done: {
+    borderRadius: 5,
+    borderWidth: 1,
+    padding: 7,
+    borderColor: 'green'
   }
 });
 
